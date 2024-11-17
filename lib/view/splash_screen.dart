@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:mymemberlink/auth/login_screen.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -23,15 +22,15 @@ class _SplashScreenState extends State<SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return const Scaffold(
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: [Image.asset('MemberLink-Icon-512.png'),
-          LoadingAnimationWidget.staggeredDotsWave(
-            color: Colors.blue,
-            size: 200
-          )],
+          children: [
+            Text(style: TextStyle(fontSize: 40, color: Colors.blue, fontWeight: FontWeight.bold), "My Member Link"),
+            //Image.asset('assets/MemberLink-Icon-512.png'),
+          SizedBox(height: 20,),
+          CircularProgressIndicator(),],
         ),
       ),
     );
