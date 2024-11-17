@@ -27,17 +27,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
+                  const Text(style: TextStyle(fontSize: 20, color: Colors.blue, fontWeight: FontWeight.bold), "My Member Link"),
+                  const SizedBox(height: 40,),
                   TextFormField(
                     controller: emailcontroller,
                     keyboardType: TextInputType.emailAddress,
-                    decoration: InputDecoration(
-                      border: const OutlineInputBorder(),
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
                       labelText: 'Email address',
-                      suffixIcon: emailcontroller.text.isNotEmpty
-                      ? IconButton(onPressed: () {
-                        emailcontroller.clear();
-                      }, icon: const Icon(Icons.clear),)
-                      : null,
                     ),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
