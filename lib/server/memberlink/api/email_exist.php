@@ -7,14 +7,13 @@ if (!isset($_POST)) {
 }
 
 include_once("db.php");
-$username = $_POST['username'];
 $email = $_POST['email'];
-$userphone = $_POST['userphone'];
-$password = sha1($_POST['password']);
 
-$sqlinsert="INSERT INTO `user_tbl`(`user_name`, `user_email`, `user_phone`, `user_pass`) VALUES ('$username', '$email', '$userphone','$password')";
+$sqlinsert="SELECT * FROM `user_tbl` WHERE `user_email` = '$email'";
 
-if ($conn->query($sqlinsert) === TRUE) {
+$result = $conn->query($sqlinsert);
+
+if ($result->num_rows > 0) {
 	$response = array('status' => 'success', 'data' => null);
     sendJsonResponse($response);
 }
