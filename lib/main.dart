@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:mymemberlink/view/splash_screen.dart';
+import 'package:mymemberlink/views/splash_screen.dart';
 
 void main() {
   runApp(const MyApp());
