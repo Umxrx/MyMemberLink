@@ -9,6 +9,8 @@ class RegisterScreen extends StatefulWidget {
 
 class _RegisterScreenState extends State<RegisterScreen> {
   final _formKey = GlobalKey<FormState>();
+  TextEditingController namecontroller = TextEditingController();
+  TextEditingController phonecontroller = TextEditingController();
   TextEditingController emailcontroller = TextEditingController();
   TextEditingController passwordcontroller = TextEditingController();
   TextEditingController confirmpasswordcontroller = TextEditingController();
@@ -30,6 +32,37 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   const Text(style: TextStyle(fontSize: 20, color: Colors.blue, fontWeight: FontWeight.bold), "My Member Link"),
                   const SizedBox(height: 40,),
                   TextFormField(
+                    controller: namecontroller,
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                      labelText: 'Fullname',
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter your fullname';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 20,),
+                  TextFormField(
+                    controller: phonecontroller,
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                      labelText: 'Phone',
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter your phone number';
+                      }
+                      else if (value.length > 20) {
+                        return 'Your phone is too long (max 20 characters)';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 20,),
+                  TextFormField(
                     controller: emailcontroller,
                     keyboardType: TextInputType.emailAddress,
                     decoration: const InputDecoration(
@@ -42,6 +75,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       }
                       else if (!_emailRegex.hasMatch(value)) {
                         return 'Please enter a valid email';
+                      }
+                      else if (value.length > 100) {
+                        return 'Your email is too long (max 100 characters)';
                       }
                       return null;
                     },
@@ -60,6 +96,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       }
                       else if (value.length < 8) {
                         return 'Password must be at least 8 characters long';
+                      }
+                      else if (value.length > 80) {
+                        return 'Password is too long (max 80 characters)';
                       }
                       return null;
                     },
