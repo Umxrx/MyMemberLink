@@ -21,10 +21,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
   TextEditingController passwordcontroller = TextEditingController();
   TextEditingController confirmpasswordcontroller = TextEditingController();
   RegExp get _emailRegex => RegExp(r'^\S+@\S+$');
+  bool _emailTaken = false;
   String password = '';
+  DateTime loginClickTime = DateTime.now();
 
   @override
   Widget build(BuildContext context) {
+  _formKey.currentState?.validate();
     return Scaffold(
       body: Center(
         child: SingleChildScrollView(
@@ -62,7 +65,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         return 'Please enter your phone number';
                       }
                       else if (value.length > 20) {
-                        return 'Your phone is too long (max 20 characters)';
+                        return 'Your phone number is too long (max 20 characters)';
                       }
                       return null;
                     },
@@ -85,13 +88,35 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       else if (value.length > 100) {
                         return 'Your email is too long (max 100 characters)';
                       }
-                      else if (isEmailExist(value) == 'existed') {
-                        return 'Your email has been registered before';
+                      else if (!_emailTaken) {
+                        return 'Email is already taken';
+                        //http.post(
+                        //  Uri.parse("${MyConfig.servername}/memberlink/api/email_exist.php"),
+                        //  body: {"email": value,},
+                        //).then((response) {
+                        //  if (response.statusCode == 200) {
+                        //    var data = jsonDecode(response.body);
+                        //    if (data['status'] == 'success') {
+                        //      print('existed');
+                        //      return 'This email has been registered before';
+                        //    }
+                        //    else {
+                        //      print('not exist');
+                        //      return null;
+                        //    }
+                        //  }
+                        //  else {
+                        //    print('uri problem');
+                        //    return 'Something went wrong';
+                        //  }
+                        //});
                       }
-                      else if (isEmailExist(value) == 'uri problem') {
-                        return 'Something went wrong';
+                      else {
+                        return null;
                       }
-                      return null;
+                    },
+                    onChanged: (value) {
+                      _checkEmail(value);
                     },
                   ),
                   const SizedBox(height: 20,),
@@ -158,7 +183,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     children: [
                       GestureDetector(
                         onTap: () {
-                          Navigator.pop(context);
+                          haveAccount();
                         },
                         child: const Text(style: TextStyle(color: Colors.blue), 'Already have an account? Login'),
                       ),
@@ -178,7 +203,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       String username  = namecontroller.text;
       String email     = emailcontroller.text;
       String userphone = phonecontroller.text;
-      String password  = passwordcontroller.text;
+      String userPassword  = passwordcontroller.text;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: const Text(style: TextStyle(color: Colors.white), 'Processing'),
         backgroundColor: Colors.green[700],
@@ -188,11 +213,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
       http.post(
         //Uri.parse("$host/memberlink/api/user_register.php"),
         Uri.parse("${MyConfig.servername}/memberlink/api/user_register.php"),
-        body: {"username": username, "email": email, "userphone": userphone, "password": password}).then((response) {
+        body: {"username": username, "email": email, "userphone": userphone, "password": userPassword}).then((response) {
           if (response.statusCode == 200) {
             var data = jsonDecode(response.body);
             if (data['status'] == 'success') {
-              _formKey.currentState?.reset();
+              setState(() {
+                _formKey.currentState?.reset();
+              });
+              
               haveAccount();
               ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                 content: const Text(style: TextStyle(color: Colors.white), 'Your account successfully created'),
@@ -230,52 +258,56 @@ class _RegisterScreenState extends State<RegisterScreen> {
     Navigator.pop(context);
   }
 
-  String isEmailExist(String newEmail) {
-    //String ipAdd = await tconfig.TestConfig().getIp();
+  Future<String> isEmailExist(String newEmail) async {
+    if (newEmail != '') {
+      //String ipAdd = await tconfig.TestConfig().getIp();
+      
+      return 'objective null';
+    }
+    else {
+      return 'null';
+    }
+  }
+
+  bool isRedundentClick(DateTime currentTime) {
+    print('diff is ${currentTime.difference(loginClickTime).inSeconds}');
+    if (currentTime.difference(loginClickTime).inSeconds < 5) {
+      // set this difference time in seconds
+      return true;
+    }
+
+    loginClickTime = currentTime;
+    return false;
+  }
+
+  _checkEmail(String emailCheck) {
     http.post(
-      //Uri.parse("$ipAdd/memberlink/api/user_register.php"),
-      Uri.parse("${MyConfig.servername}/memberlink/api/user_register.php"),
-      body: {"email": newEmail}
+      Uri.parse("${MyConfig.servername}/memberlink/api/email_exist.php"),
+      body: {"email": emailCheck,},
     ).then((response) {
       if (response.statusCode == 200) {
         var data = jsonDecode(response.body);
         if (data['status'] == 'success') {
-          return 'existed';
+          print('existed');
+          //return 'This email has been registered before';
+          setState(() {
+            _emailTaken = false;
+          });
         }
         else {
-          return 'not exist';
+          print('not exist');
+          //return null;
+          setState(() {
+            _emailTaken = true;
+          });
         }
       }
       else {
-        return 'uri problem';
-      }
-    });
-    return '';
-  }
-
-  void userRegistration() {
-    String username  = namecontroller.text;
-    String email     = emailcontroller.text;
-    String userphone = phonecontroller.text;
-    String password  = passwordcontroller.text;
-    //String host = await tconfig.TestConfig().getIp();
-    http.post(
-        //Uri.parse("$host/memberlink/api/user_register.php"),
-        Uri.parse("${MyConfig.servername}/memberlink/api/user_register.php"),
-        body: {"username": username, "email": email, "userphone": userphone, "password": password}).then((response) {
-      if (response.statusCode == 200) {
-        var data = jsonDecode(response.body);
-        if (data['status'] == "success") {
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-            content: Text("Registration Success"),
-            backgroundColor: Color.fromARGB(255, 12, 12, 12),
-          ));
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-            content: Text("Registration Failed"),
-            backgroundColor: Colors.red,
-          ));
-        }
+        print('uri problem');
+        //return 'Something went wrong';
+        setState(() {
+          _emailTaken = false;
+        });
       }
     });
   }
