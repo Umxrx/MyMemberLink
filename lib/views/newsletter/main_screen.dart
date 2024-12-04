@@ -7,7 +7,7 @@ import 'package:mymemberlink/model/news.dart';
 import 'package:mymemberlink/myconfig.dart';
 import 'package:mymemberlink/shared/mydrawer.dart';
 import 'package:mymemberlink/views/newsletter/edit_news.dart';
-import 'package:mymemberlink/views/newsletter/new_news.dart';
+//import 'package:mymemberlink/views/newsletter/new_news.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -18,7 +18,7 @@ class MainScreen extends StatefulWidget {
 
 class _MainScreenState extends State<MainScreen> {
   List<News> newsList = [];
-  final df = DateFormat('dd/MM/yyyy hh:mm a');
+  final df = DateFormat('[dd/MM/yyyy] hh:mm a');
   int numofpage = 1;
   int curpage = 1;
   int numofresult = 0;
@@ -37,66 +37,91 @@ class _MainScreenState extends State<MainScreen> {
     screenWidth = MediaQuery.of(context).size.width;
     return Scaffold(
         appBar: AppBar(
-          title: const Text("Newsletter"),
-          actions: [
-            IconButton(
-                onPressed: () {
-                  loadNewsData();
-                },
-                icon: const Icon(Icons.refresh))
-          ],
+          title: const Text(style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold), "My Member Link"),
+          backgroundColor: Colors.blue[800],
+          elevation: 10.0,
+          foregroundColor: Colors.white,
         ),
         body: newsList.isEmpty
             ? const Center(
-                child: Text("Loading..."),
+                child: Center(child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    CircularProgressIndicator(),
+                    SizedBox(height: 10,),
+                    Text(style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 2, color: Color.fromARGB(255, 65, 65, 65)), "LOADING..."),
+                  ],
+                )),
               )
             : Column(
                 children: [
+                  const SizedBox(height: 10,),
                   Container(
                     alignment: Alignment.center,
-                    child: Text("Page: $curpage/Result: $numofresult"),
+                    child: Text(style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, wordSpacing: 5, color: Colors.grey[800]), "NEWSLETTER"),
+                  ),
+                  Container(
+                    alignment: Alignment.center,
+                    child: Text(style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey[700]), "Page: $curpage/$numofpage | Result: $numofresult"),
                   ),
                   Expanded(
                     child: ListView.builder(
                         itemCount: newsList.length,
                         itemBuilder: (context, index) {
-                          return Card(
-                            child: ListTile(
-                              onLongPress: () {
-                                deleteDialog(index);
-                              },
-                              title: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    truncateString(
-                                        newsList[index].newsTitle.toString(),
-                                        30),style: const TextStyle(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.bold),
-                                  ),
-                                  Text(
-                                    df.format(DateTime.parse(
-                                        newsList[index].newsDate.toString())),
-                                    style: const TextStyle(fontSize: 12),
-                                  ),
-                                ],
-                              ),
-                              subtitle: Text(
-                                truncateString(
-                                    newsList[index].newsDetails.toString(),
-                                    100),
-                                textAlign: TextAlign.justify,
-                              ),
-
-                              // leading: const Icon(Icons.article),
-                              trailing: IconButton(
-                                icon: const Icon(
-                                  Icons.arrow_forward,
-                                ),
-                                onPressed: () {
-                                  showNewsDetailsDialog(index);
+                          int col = colorIndex(index);
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                            child: Card(
+                              color: Colors.blue[col],
+                              elevation: 10,
+                              child: ListTile(
+                                onLongPress: () {
+                                  deleteDialog(index);
                                 },
+                                title: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      newsList[index].newsTitle.toString(),
+                                      maxLines: 2,
+                                      style: const TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.white,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 2,),
+                                    Text(
+                                      df.format(DateTime.parse(newsList[index].newsDate.toString())),
+                                      style: const TextStyle(fontSize: 10, color: Colors.white54),
+                                      overflow: TextOverflow.ellipsis,
+                                      maxLines: 1,
+                                    ),
+                                    const SizedBox(height: 2,),
+                                  ],
+                                ),
+                                subtitle: Text(
+                                  newsList[index].newsDetails.toString(),
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.white,
+                                  ),
+                                  maxLines: 3,
+                                  overflow: TextOverflow.ellipsis,
+                                  textAlign: TextAlign.justify,
+                                ),
+                            
+                                // leading: const Icon(Icons.article),
+                                trailing: IconButton(
+                                  icon: const Icon(
+                                    Icons.arrow_forward,
+                                  ),
+                                  color: Colors.white,
+                                  onPressed: () {
+                                    showNewsDetailsDialog(index);
+                                  },
+                                ),
                               ),
                             ),
                           );
@@ -112,7 +137,7 @@ class _MainScreenState extends State<MainScreen> {
                         //build the list for textbutton with scroll
                         if ((curpage - 1) == index) {
                           //set current page number active
-                          color = Colors.red;
+                          color = Colors.blue;
                         } else {
                           color = Colors.black;
                         }
@@ -131,14 +156,15 @@ class _MainScreenState extends State<MainScreen> {
                 ],
               ),
         drawer: const MyDrawer(),
-        floatingActionButton: FloatingActionButton(
+        /* floatingActionButton: FloatingActionButton(
           onPressed: () async {
             // loadNewsData();
                 MaterialPageRoute(builder: (content) => const NewNewsScreen());
             loadNewsData();
           },
           child: const Icon(Icons.add),
-        ));
+        ) */
+    );
   }
 
   String truncateString(String str, int length) {
@@ -151,10 +177,7 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   void loadNewsData() {
-    http
-        .get(Uri.parse(
-            "${MyConfig.servername}/memberlink/api/load_news.php?pageno=$curpage"))
-        .then((response) {
+    http.get(Uri.parse("${MyConfig.servername}/memberlink/api/load_news.php?pageno=$curpage")).then((response) {
       // log(response.body.toString());
       if (response.statusCode == 200) {
         var data = jsonDecode(response.body);
@@ -182,9 +205,12 @@ class _MainScreenState extends State<MainScreen> {
         context: context,
         builder: (context) {
           return AlertDialog(
-            title: Text(newsList[index].newsTitle.toString()),
-            content: Text(newsList[index].newsDetails.toString(),
-                textAlign: TextAlign.justify),
+            title: Text(newsList[index].newsTitle.toString(), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),),
+            backgroundColor: Colors.blue[colorIndex(index)],
+            content: Text(truncateString(newsList[index].newsDetails.toString(), 300),
+                textAlign: TextAlign.justify,
+                style: const TextStyle(color: Colors.white70),
+                ),
             actions: [
               TextButton(
                 onPressed: () async {
@@ -197,13 +223,14 @@ class _MainScreenState extends State<MainScreen> {
                           builder: (content) => EditNewsScreen(news: news)));
                   loadNewsData();
                 },
-                child: const Text("Edit?"),
+                child: const Text("Edit", style: TextStyle(color: Colors.white),),
               ),
               TextButton(
                   onPressed: () {
                     Navigator.pop(context);
                   },
-                  child: const Text("Close"))
+                  child: const Text("Cancel", style: TextStyle(color: Colors.white))
+              )
             ],
           );
         });
@@ -245,17 +272,37 @@ class _MainScreenState extends State<MainScreen> {
         log(data.toString());
         if (data['status'] == "success") {
           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-            content: Text("Success"),
+            content: Text("The news has been deleted successfully"),
             backgroundColor: Colors.green,
           ));
           loadNewsData(); //reload data
         } else {
           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-            content: Text("Failed"),
+            content: Text("Something went wrong..."),
             backgroundColor: Colors.red,
           ));
         }
       }
     });
+  }
+
+  int colorIndex(int index) {
+    int indexResult;
+    if (index == 0 || index == 5) {
+      indexResult = 500;
+    }
+    else if (index == 1 || index == 6) {
+      indexResult = 600;
+    }
+    else if (index == 2 || index == 7) {
+      indexResult = 700;
+    }
+    else if (index == 3 || index == 8) {
+      indexResult = 800;
+    }
+    else {
+      indexResult = 900;
+    }
+    return indexResult;
   }
 }
