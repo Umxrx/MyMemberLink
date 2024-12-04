@@ -244,9 +244,10 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   _checkEmail(String emailCheck) {
+    String trimmed = emailCheck.trim();
     http.post(
       Uri.parse("${MyConfig.servername}/memberlink/api/email_exist.php"),
-      body: {"email": emailCheck,},
+      body: {"email": trimmed,},
     ).then((response) {
       if (response.statusCode == 200) {
         var data = jsonDecode(response.body);
