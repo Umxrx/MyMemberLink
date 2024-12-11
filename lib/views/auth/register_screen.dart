@@ -213,7 +213,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
       http.post(
         //Uri.parse("$host/memberlink/api/user_register.php"),
         Uri.parse("${MyConfig.servername}/memberlink/api/user_register.php"),
-        body: {"username": username, "email": email, "userphone": userphone, "password": userPassword}).then((response) {
+        body: {"username": username, "email": email, "userphone": userphone, "password": userPassword})
+        .then((response) {
           if (response.statusCode == 200) {
             var data = jsonDecode(response.body);
             if (data['status'] == 'success') {

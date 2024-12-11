@@ -1,5 +1,5 @@
 import 'dart:convert';
-
+import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:mymemberlink/myconfig.dart';
 import 'package:mymemberlink/views/newsletter/main_screen.dart';
@@ -41,15 +41,13 @@ class _LoginScreenState extends State<LoginScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text(style: TextStyle(fontSize: 20, color: Colors.blue, fontWeight: FontWeight.bold), "My Member Link"),
+                  const Text(style: TextStyle(fontSize: 20,color: Colors.blue,fontWeight: FontWeight.bold),
+                    "My Member Link"
+                  ),
                   const SizedBox(height: 40,),
-                  TextFormField(
-                    controller: emailcontroller,
+                  TextFormField(controller: emailcontroller,
                     keyboardType: TextInputType.emailAddress,
-                    decoration: const InputDecoration(
-                      border: OutlineInputBorder(),
-                      labelText: 'Email address',
-                    ),
+                    decoration: const InputDecoration(border: OutlineInputBorder(), labelText: 'Email address',),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return 'Please enter your email address';
@@ -252,14 +250,14 @@ class _LoginScreenState extends State<LoginScreen> {
       if (response.statusCode == 200) {
         var data = jsonDecode(response.body);
         if (data['status'] == 'success') {
-          print('existed');
+          log('$emailCheck exist');
           //return 'This email has been registered';
           setState(() {
             _isEmailExist = true;
           });
         }
         else {
-          print('not exist');
+          log('$emailCheck not exist');
           //return null;
           setState(() {
             _isEmailExist = false;
@@ -267,7 +265,7 @@ class _LoginScreenState extends State<LoginScreen> {
         }
       }
       else {
-        print('uri problem');
+        log('uri problem');
         //return 'Something went wrong';
         setState(() {
           _isEmailExist = false;
