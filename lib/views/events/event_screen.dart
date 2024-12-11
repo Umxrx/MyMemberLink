@@ -183,7 +183,7 @@ class _EventScreenState extends State<EventScreen> {
               child: Column(children: [
                 Image.network(
                     errorBuilder: (context, error, stackTrace) => Image.asset(
-                          "assets/images/na.png",
+                          "assets/icon/error_notfound.png",
                         ),
                     width: screenWidth,
                     height: screenHeight / 4,

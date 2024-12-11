@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer';
 import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
@@ -59,7 +60,7 @@ class _NewEventScreenState extends State<NewEventScreen> {
                                 fit: BoxFit.contain,
                                 image: _image == null
                                     ? const AssetImage(
-                                        "assets/images/camera.png")
+                                        "assets/icon/camera.png")
                                     : FileImage(_image!) as ImageProvider),
                             borderRadius: BorderRadius.circular(10),
                             color: Colors.grey.shade200,
@@ -111,7 +112,7 @@ class _NewEventScreenState extends State<NewEventScreen> {
                                       selectTime.hour,
                                       selectTime.minute,
                                     );
-                                    print(selectedStartDateTime.toString());
+                                    log(selectedStartDateTime.toString());
                                     var formatter =
                                         DateFormat('dd-MM-yyyy hh:mm a');
                                     String formattedDate =
@@ -156,7 +157,7 @@ class _NewEventScreenState extends State<NewEventScreen> {
                                     String formattedDate =
                                         formatter.format(selectedEndDateTime);
                                     endDateTime = formattedDate.toString();
-                                    print(endDateTime);
+                                    log(endDateTime);
                                     setState(() {});
                                   }
                                 });
@@ -217,7 +218,7 @@ class _NewEventScreenState extends State<NewEventScreen> {
                       elevation: 10,
                       onPressed: () {
                         if (!_formKey.currentState!.validate()) {
-                          print("STILL HERE");
+                          log("STILL HERE");
                           return;
                         }
                         if (_image == null) {
@@ -229,7 +230,7 @@ class _NewEventScreenState extends State<NewEventScreen> {
                           return;
                         }
                         double filesize = getFileSize(_image!);
-                        print(filesize);
+                        log('$filesize');
 
                         if (filesize > 100) {
                           ScaffoldMessenger.of(context)
@@ -336,8 +337,8 @@ class _NewEventScreenState extends State<NewEventScreen> {
       maxHeight: 800,
       maxWidth: 800,
     );
-    print("BEFORE CROP: ");
-    print(getFileSize(_image!));
+    log("BEFORE CROP: ");
+    log('${getFileSize(_image!)}');
     if (pickedFile != null) {
       _image = File(pickedFile.path);
       // setState(() {
@@ -366,7 +367,7 @@ class _NewEventScreenState extends State<NewEventScreen> {
     if (croppedFile != null) {
       File imageFile = File(croppedFile.path);
       _image = imageFile;
-      print(getFileSize(_image!));
+      log('${getFileSize(_image!)}');
       setState(() {});
     }
   }
