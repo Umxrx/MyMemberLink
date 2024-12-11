@@ -30,10 +30,10 @@ if ($result->num_rows > 0) {
         $news['news_date'] = $row['news_date'];
         array_push($newsarray['news'], $news);
     }
-    $response = array('status' => 'success', 'data' => $newsarray,'numofpage'=>$number_of_page,'numberofresult'=>$number_of_result);
+    $response = array('status' => 'success', 'data' => $newsarray,'numofpage'=>$number_of_page, 'numberofresult'=>$number_of_result);
     sendJsonResponse($response);
 }else{
-    $response = array('status' => 'failed', 'data' => null, 'numofpage'=>$number_of_page,'numberofresult'=>$number_of_result);
+    $response = array('status' => 'failed', 'data' => null, 'numofpage'=>$number_of_page, 'numberofresult'=>$number_of_result);
     sendJsonResponse($response);
 }
 	
