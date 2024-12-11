@@ -69,6 +69,7 @@ flutter:
     - assets/icon/user_icon.jpeg
     - assets/icon/user.png
     - assets/icon/error_notfound.png
+    - assets/icon/camera.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
