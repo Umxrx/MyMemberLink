@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:developer';
 import 'package:flutter/material.dart';
+import 'package:mymemberlink/model/user.dart';
 import 'package:mymemberlink/myconfig.dart';
 import 'package:mymemberlink/views/newsletter/main_screen.dart';
 import 'package:mymemberlink/views/auth/register_screen.dart';
@@ -133,11 +134,6 @@ class _LoginScreenState extends State<LoginScreen> {
     if (_formKey.currentState!.validate()) {
       String email         = emailcontroller.text;
       String userPassword  = passwordcontroller.text;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: const Text(style: TextStyle(color: Colors.white), 'Processing'),
-        backgroundColor: Colors.green[700],
-        duration: const Duration(seconds: 2),
-      ));
       http.post(
         //Uri.parse("$host/memberlink/api/user_login.php"),
         Uri.parse("${MyConfig.servername}/memberlink/api/user_login.php"),
@@ -145,10 +141,14 @@ class _LoginScreenState extends State<LoginScreen> {
           if (response.statusCode == 200) {
             var data = jsonDecode(response.body);
             if (data['status'] == 'success') {
+              User user = User.fromJson(data['data']);
               setState(() {
                 _formKey.currentState?.reset();
               });
-              Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) => const MainScreen()), (_) => false);
+              Navigator.pushAndRemoveUntil(context,
+                MaterialPageRoute(builder: (context) => MainScreen(
+                  user: user,
+                )), (_) => false);
               ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                 content: const Text(style: TextStyle(color: Colors.white), 'Login successful'),
                 backgroundColor: Colors.green[700],

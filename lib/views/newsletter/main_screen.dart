@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:mymemberlink/model/news.dart';
+import 'package:mymemberlink/model/user.dart';
 import 'package:mymemberlink/myconfig.dart';
 import 'package:mymemberlink/shared/mydrawer.dart';
 import 'package:mymemberlink/views/newsletter/edit_news.dart';
@@ -12,7 +13,8 @@ import 'package:mymemberlink/views/newsletter/new_news.dart';
 //import 'package:mymemberlink/views/newsletter/new_news.dart';
 
 class MainScreen extends StatefulWidget {
-  const MainScreen({super.key});
+  final User user;
+  const MainScreen({super.key, required this.user});
 
   @override
   State<MainScreen> createState() => _MainScreenState();
@@ -183,7 +185,9 @@ class _MainScreenState extends State<MainScreen> {
                     ),
                   ],
                 ),
-          drawer: const MyDrawer(),
+          drawer: MyDrawer(
+            user: widget.user,
+          ),
           floatingActionButton: FloatingActionButton(
             onPressed: () async {
               await Navigator.push(context,

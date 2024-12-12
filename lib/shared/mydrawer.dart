@@ -1,10 +1,17 @@
+// import 'dart:convert';
+// import 'dart:developer';
+// import 'package:mymemberlink/model/cart.dart';
+// import 'package:mymemberlink/myconfig.dart';
+// import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
+import 'package:mymemberlink/model/user.dart';
 import 'package:mymemberlink/views/events/event_screen.dart';
 import 'package:mymemberlink/views/newsletter/main_screen.dart';
 import 'package:mymemberlink/views/products/products_screen.dart';
 
 class MyDrawer extends StatelessWidget {
-  const MyDrawer({super.key});
+  final User user;
+  const MyDrawer({super.key, required this.user});
 
   @override
   Widget build(BuildContext context) {
@@ -25,7 +32,9 @@ class MyDrawer extends StatelessWidget {
                 context,
                 PageRouteBuilder(
                   pageBuilder: (context, animation, secondaryAnimation) =>
-                      const MainScreen(),
+                      MainScreen(
+                        user: user,
+                      ),
                   transitionsBuilder:
                       (context, animation, secondaryAnimation, child) {
                     const begin = Offset(1.0, 0.0); // Slide in from the right
@@ -57,7 +66,9 @@ class MyDrawer extends StatelessWidget {
                 context,
                 PageRouteBuilder(
                   pageBuilder: (context, animation, secondaryAnimation) =>
-                      const EventScreen(),
+                      EventScreen(
+                        user: user,
+                      ),
                   transitionsBuilder:
                       (context, animation, secondaryAnimation, child) {
                     const begin = Offset(1.0, 0.0); // Slide in from the right
@@ -94,7 +105,10 @@ class MyDrawer extends StatelessWidget {
                 context,
                 PageRouteBuilder(
                   pageBuilder: (context, animation, secondaryAnimation) =>
-                      const ProductsScreen(),
+                      ProductsScreen(
+                        user: user,
+                        //cartList: loadCart(),
+                      ),
                   transitionsBuilder:
                       (context, animation, secondaryAnimation, child) {
                     const begin = Offset(1.0, 0.0); // Slide in from the right
@@ -127,4 +141,25 @@ class MyDrawer extends StatelessWidget {
       ),
     );
   }
+
+  // List<Cart> loadCart() {
+  //   List<Cart> cartList = [];
+  //   http
+  //       .get(Uri.parse("${MyConfig.servername}/memberlink/api/load_cart.php?userid=${widget.user.userId.toString()}"))
+  //       .then((response) {
+  //     log(response.body.toString());
+  //     if (response.statusCode == 200) {
+  //       var data = jsonDecode(response.body);
+  //       if (data['status'] == "success") {
+  //         var result = data['data']['cart'];
+  //         cartList.clear();
+  //         for (var item in result) {
+  //           Cart myproducts = Cart.fromJson(item);
+  //           cartList.add(myproducts);
+  //         }
+  //       }
+  //     }
+  //   });
+  //   return cartList;
+  // }
 }

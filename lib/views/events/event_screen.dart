@@ -5,13 +5,15 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
 import 'package:mymemberlink/model/myevent.dart';
+import 'package:mymemberlink/model/user.dart';
 import 'package:mymemberlink/myconfig.dart';
 import 'package:mymemberlink/shared/mydrawer.dart';
 import 'package:mymemberlink/views/events/edit_event.dart';
 import 'package:mymemberlink/views/events/new_event.dart';
 
 class EventScreen extends StatefulWidget {
-  const EventScreen({super.key});
+  final User user;
+  const EventScreen({super.key, required this.user});
 
   @override
   State<EventScreen> createState() => _EventScreenState();
@@ -121,7 +123,9 @@ class _EventScreenState extends State<EventScreen> {
                   ),
                 );
               })),
-      drawer: const MyDrawer(),
+      drawer: MyDrawer(
+        user: widget.user,
+      ),
       floatingActionButton: FloatingActionButton(
             onPressed: () async {
               await Navigator.push(context,

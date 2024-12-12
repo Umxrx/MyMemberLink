@@ -5,13 +5,15 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
 import 'package:mymemberlink/model/product.dart';
+import 'package:mymemberlink/model/user.dart';
 import 'package:mymemberlink/myconfig.dart';
 import 'package:mymemberlink/shared/mydrawer.dart';
 import 'package:mymemberlink/views/products/cart_screen.dart';
 import 'package:mymemberlink/views/products/product_details.dart';
 
 class ProductsScreen extends StatefulWidget {
-  const ProductsScreen({super.key});
+  final User user;
+  const ProductsScreen({super.key, required this.user});
 
   @override
   State<ProductsScreen> createState() => _ProductsScreenState();
@@ -20,8 +22,14 @@ class ProductsScreen extends StatefulWidget {
 class _ProductsScreenState extends State<ProductsScreen> {
   List<Product> productsList = [];
   late double screenWidth, screenHeight;
-  final df = DateFormat('dd/MM/yyyy hh:mm a');
+  final df = DateFormat('[dd/MM/yyyy] hh:mm a');
+  int numofpage = 1;
+  int curpage = 1;
+  int numofresult = 0;
+  int cartCount = 0;
   String status = "LOADING...";
+  var color;
+
   @override
   void initState() {
     super.initState();
@@ -43,9 +51,34 @@ class _ProductsScreenState extends State<ProductsScreen> {
         backgroundColor: Colors.blue[800],
         foregroundColor: Colors.white,
         actions: [
-          IconButton(onPressed: () {
-            //
-          }, icon: const Icon(Icons.refresh))
+          IconButton(
+          onPressed: () async {
+            final what = await Navigator.push(
+              context,
+              MaterialPageRoute(builder: (content) =>
+                CartScreen(
+                  user: widget.user,
+                )
+              )
+            );
+            setState(() {
+              cartCount == 0 ? loadCartCount() : cartCount = 0;
+            });
+          },
+          icon: cartCount == 0
+          ? const Icon(Icons.trolley)
+          : Badge(
+            isLabelVisible: true,
+            label: Text('$cartCount'),
+            offset: const Offset(8, -10),
+            backgroundColor: Colors.red,
+            textColor: Colors.white,
+            child: const Icon(
+              Icons.trolley,
+              size: 24,
+            ),
+          )
+          ),
         ],
       ),
       body: productsList.isEmpty
@@ -66,73 +99,217 @@ class _ProductsScreenState extends State<ProductsScreen> {
                 ],
               ),
             )
-          : GridView.count(
-              childAspectRatio: 0.75,
-              crossAxisCount: 2,
-              children: List.generate(productsList.length, (index) {
-                return Card(
-                  child: InkWell(
-                    splashColor: Colors.red,
-                    onLongPress: () {
-                      deleteDialog(index);
-                    },
-                    onTap: () {
-                      showProductDetailsDialog(index);
-                    },
-                    child: Padding(
-                      padding: const EdgeInsets.fromLTRB(4, 8, 4, 4),
-                      child: Column(children: [
-                        Text(
-                          productsList[index].productName.toString(),
-                          style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 18,
-                              overflow: TextOverflow.ellipsis),
-                        ),
-                        SizedBox(
-                          child: Image.network(
-                              errorBuilder: (context, error, stackTrace) =>
+          : Column(
+            children: [
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
+                  child: GridView.count(
+                      childAspectRatio: 0.75,
+                      crossAxisCount: 2,
+                      children: List.generate(productsList.length, (index) {
+                        return Card(
+                          elevation: 5,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(12),
+                              gradient: LinearGradient(
+                                colors: [
+                                  Colors.blue.shade200,
+                                  Colors.blue.shade900,
+                                ],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              )
+                            ),
+                            child: InkWell(
+                              //splashColor: Colors.red,
+                              onLongPress: () {
+                                deleteDialog(index);
+                              },
+                              onTap: () async {
+                                Product prod = productsList[index];
+                                final what = Navigator.push(context,
+                                  PageRouteBuilder(
+                                    pageBuilder: (context, animation, secondaryAnimation) =>
+                                        ProductDetailsScreen(
+                                          user: widget.user,
+                                          product: prod,
+                                        ),
+                                    transitionsBuilder:
+                                        (context, animation, secondaryAnimation, child) {
+                                      const begin = Offset(1.0, 0.0); // Slide in from the right
+                                      const end = Offset.zero;
+                                      const curve = Curves.ease;
+                                
+                                      var tween = Tween(begin: begin, end: end)
+                                          .chain(CurveTween(curve: curve));
+                                      var offsetAnimation = animation.drive(tween);
+                                
+                                      return SlideTransition(
+                                        position: offsetAnimation,
+                                        child: child,
+                                      );
+                                    },
+                                  ),
+                                ).then((value) { setState(() {});});
+                                setState(() {
+                                  cartCount == 0 ? loadCartCount() : cartCount = 0;
+                                });
+                              },
+                              child: Padding(
+                                padding: const EdgeInsets.fromLTRB(4, 8, 4, 4),
+                                child: Column(
+                                  children: [
                                   SizedBox(
-                                    height: screenHeight/6,
-                                    child: Image.asset(
-                                      "assets/icon/error_notfound.png",
+                                    child: Image.network(
+                                        errorBuilder: (context, error, stackTrace) =>
+                                            SizedBox(
+                                              height: screenHeight/6,
+                                              child: Image.asset(
+                                                "assets/icon/error_notfound.png",
+                                              ),
+                                            ),
+                                        width: screenWidth / 2,
+                                        height: screenHeight / 6,
+                                        fit: BoxFit.cover,
+                                        scale: 4,
+                                        "${MyConfig.servername}/memberlink/assets/products/${productsList[index].productFilename}"),
+                                  ),
+                                  Container(
+                                    padding: const EdgeInsets.fromLTRB(0, 8, 0, 0),
+                                    child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.start,
+                                      children: [
+                                        Flexible(
+                                          fit: FlexFit.loose,
+                                          child: Text(
+                                            productsList[index].productName.toString(),
+                                            style: const TextStyle(
+                                                fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ),
-                              width: screenWidth / 2,
-                              height: screenHeight / 6,
-                              fit: BoxFit.cover,
-                              scale: 4,
-                              "${MyConfig.servername}/memberlink/assets/products/${productsList[index].productFilename}"),
-                        ),
-                        Container(
-                          padding: const EdgeInsets.fromLTRB(0, 8, 0, 0),
-                          child: Text(
-                            productsList[index].productCategory.toString(),
-                            style: const TextStyle(
-                                fontSize: 18, fontWeight: FontWeight.bold),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.start,
+                                    children: [
+                                      Flexible(
+                                        fit: FlexFit.loose,
+                                        flex: 1,
+                                        child: Text(truncateString(
+                                            productsList[index].productDescription.toString(), 45),
+                                          maxLines: 2,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: const TextStyle(
+                                            color: Colors.white70,
+                                            fontSize: 12
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 3.6,),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text(getPrice(double.parse(productsList[index].productPrice.toString())),
+                                        style: const TextStyle(
+                                          color: Colors.orange,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 16
+                                        ),
+                                      ),
+                                      Row(
+                                        mainAxisAlignment: MainAxisAlignment.end,
+                                        children: [
+                                          const Icon(
+                                            Icons.location_pin,
+                                            size: 10,
+                                            color: Colors.white,
+                                          ),
+                                          Text(lastLocation(productsList[index].productLocation.toString()),
+                                            overflow: TextOverflow.ellipsis,
+                                            style: const TextStyle(
+                                              color: Colors.white,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  )
+                                ]),
+                              ),
+                            ),
                           ),
-                        ),
-                        Text(df.format(DateTime.parse(
-                            productsList[index].productDate.toString()))),
-                        Text(truncateString(
-                            productsList[index].productDescription.toString(), 45)),
-                      ]),
-                    ),
-                  ),
-                );
-              })),
-      drawer: const MyDrawer(),
+                        );
+                      })),
+                ),
+              ),
+              SizedBox(
+                height: screenHeight * 0.05,
+                child: ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: numofpage,
+                  scrollDirection: Axis.horizontal,
+                  itemBuilder: (context, index) {
+                    if ((curpage - 1) == index) {
+                      color = Colors.blue;
+                    } else {
+                      color = Colors.black;
+                    }
+                    return TextButton(
+                        onPressed: () {
+                          curpage = index + 1;
+                          loadProductsData();
+                        },
+                        child: Text(
+                          (index + 1).toString(),
+                          style: TextStyle(color: color, fontSize: 18),
+                        ));
+                  },
+                ),
+              ),
+            ],
+          ),
+      drawer: MyDrawer(
+        user: widget.user,
+      ),
       floatingActionButton: FloatingActionButton(
             onPressed: () async {
-              await Navigator.push(context,
-                MaterialPageRoute(builder: (content) => const CartScreen()));
+              final what = await Navigator.push(
+                context,
+                MaterialPageRoute(builder: (content) =>
+                  CartScreen(
+                    user: widget.user,
+                  )
+                )
+              );
+              setState(() {
+                cartCount == 0 ? loadCartCount() : cartCount = 0;
+              });
             },
             backgroundColor: Colors.blue,
             foregroundColor: Colors.white,
             elevation: 10,
             tooltip: "Your Cart",
             shape: RoundedRectangleBorder(side: const BorderSide(width: 2, color: Colors.white, strokeAlign: 1.0), borderRadius: BorderRadius.circular(100)),
-            child: const Icon(Icons.trolley),
+            child: cartCount == 0
+              ? const Icon(Icons.trolley)
+              : Badge(
+                  isLabelVisible: true,
+                  label: Text('$cartCount'),
+                  offset: const Offset(8, -8),
+                  backgroundColor: Colors.red,
+                  textColor: Colors.white,
+                  child: const Icon(
+                    Icons.trolley,
+                    size: 24,
+                  ),
+                ),
           ),
           floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
     );
@@ -149,21 +326,30 @@ class _ProductsScreenState extends State<ProductsScreen> {
 
   void loadProductsData() {
     http
-        .get(Uri.parse("${MyConfig.servername}/memberlink/api/load_products.php"))
+        .get(Uri.parse("${MyConfig.servername}/memberlink/api/load_products.php?pageno=$curpage"))
         .then((response) {
       log(response.body.toString());
       if (response.statusCode == 200) {
         var data = jsonDecode(response.body);
         if (data['status'] == "success") {
+          log('$data');
           var result = data['data']['products'];
           productsList.clear();
           for (var item in result) {
             Product myproduct = Product.fromJson(item);
             productsList.add(myproduct);
           }
-          setState(() {});
+          setState(() {
+            status = 'LOADING...';
+            numofpage = data['numofpage'];
+            numofresult = data['numberofresult'];
+            loadCartCount();
+          });
         } else {
-          status = "NO DATA";
+          setState(() {
+            productsList.clear();
+            status = 'NO DATA';
+          });
         }
       } else {
         status = "ERROR";
@@ -173,60 +359,25 @@ class _ProductsScreenState extends State<ProductsScreen> {
     });
   }
 
-  void showProductDetailsDialog(int index) {
-    showDialog(
-        context: context,
-        builder: (context) {
-          return AlertDialog(
-            title: Text(productsList[index].productName.toString()),
-            content: SingleChildScrollView(
-              child: Column(children: [
-                Image.network(
-                    errorBuilder: (context, error, stackTrace) => Image.asset(
-                          "assets/icon/error_notfound.png",
-                        ),
-                    width: screenWidth,
-                    height: screenHeight / 4,
-                    fit: BoxFit.cover,
-                    scale: 4,
-                    "${MyConfig.servername}/memberlink/assets/products/${productsList[index].productFilename}"),
-                Text(productsList[index].productCategory.toString()),
-                Text(df.format(
-                    DateTime.parse(productsList[index].productDate.toString()))),
-                Text(productsList[index].productLocation.toString()),
-                const SizedBox(height: 10),
-                Text(
-                  productsList[index].productDescription.toString(),
-                  textAlign: TextAlign.justify,
-                )
-              ]),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () async {
-                  Navigator.pop(context);
-                  Product myproduct = productsList[index];
-                  await Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (content) => ProductDetailsScreen(
-                                product: myproduct,
-                              )
-                            )
-                          );
-                  loadProductsData();
-                },
-                child: const Text("Show Product"),
-              ),
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-                child: const Text("Close"),
-              )
-            ],
-          );
-        });
+  void loadCartCount() {
+    http
+        .post(Uri.parse("${MyConfig.servername}/memberlink/api/count_cart.php"),
+        body: {'userid': widget.user.userId.toString()})
+        .then((response) {
+      log(response.body.toString());
+      if (response.statusCode == 200) {
+        var data = jsonDecode(response.body);
+        if (data['status'] == "success") {
+          var result = data['data'];
+          log(result.toString());
+          if (result != null) {
+            setState(() {
+              cartCount = int.parse(result.toString());
+            });
+          }
+        }
+      }
+    });
   }
 
   void deleteDialog(int index) {
@@ -281,5 +432,15 @@ class _ProductsScreenState extends State<ProductsScreen> {
         }
       }
     });
+  }
+
+  String lastLocation(String text) {
+    var words = text.split(',');
+    return words.last.trim();
+  }
+
+  String getPrice(double price) {
+    String newPrice = 'RM${price.toStringAsFixed(2)}';
+    return newPrice;
   }
 }

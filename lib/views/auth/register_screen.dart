@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -271,7 +272,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   bool isRedundentClick(DateTime currentTime) {
-    print('diff is ${currentTime.difference(loginClickTime).inSeconds}');
+    log('diff is ${currentTime.difference(loginClickTime).inSeconds}');
     if (currentTime.difference(loginClickTime).inSeconds < 5) {
       // set this difference time in seconds
       return true;
