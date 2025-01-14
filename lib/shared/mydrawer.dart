@@ -6,6 +6,7 @@
 import 'package:flutter/material.dart';
 import 'package:mymemberlink/model/user.dart';
 import 'package:mymemberlink/views/events/event_screen.dart';
+import 'package:mymemberlink/views/membership/membership_screen.dart';
 import 'package:mymemberlink/views/newsletter/main_screen.dart';
 import 'package:mymemberlink/views/products/products_screen.dart';
 
@@ -91,8 +92,35 @@ class MyDrawer extends StatelessWidget {
               //     MaterialPageRoute(builder: (content) => const EventScreen()));
             },
           ),
-          const ListTile(
-            title: Text("Members"),
+          ListTile(
+            title: const Text("Members"),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.push(
+                context,
+                PageRouteBuilder(
+                  pageBuilder: (context, animation, secondaryAnimation) =>
+                      MembershipScreen(
+                        user: user,
+                      ),
+                  transitionsBuilder:
+                      (context, animation, secondaryAnimation, child) {
+                    const begin = Offset(1.0, 0.0); // Slide in from the right
+                    const end = Offset.zero;
+                    const curve = Curves.ease;
+
+                    var tween = Tween(begin: begin, end: end)
+                        .chain(CurveTween(curve: curve));
+                    var offsetAnimation = animation.drive(tween);
+
+                    return SlideTransition(
+                      position: offsetAnimation,
+                      child: child,
+                    );
+                  },
+                ),
+              );
+            },
           ),
           const ListTile(
             title: Text("Payments"),
