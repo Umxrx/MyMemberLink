@@ -41,6 +41,9 @@ dependencies:
   intl: ^0.20.1
   image_picker: ^1.1.2
   image_cropper: ^8.0.2
+  geolocator: ^13.0.2
+  geocoding: ^3.0.0
+  google_maps_flutter: ^2.10.0
 
 dev_dependencies:
   flutter_test:
@@ -70,6 +73,7 @@ flutter:
     - assets/icon/user.png
     - assets/icon/error_notfound.png
     - assets/icon/camera.png
+    - assets/icon/error_notfound.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
