@@ -1,5 +1,4 @@
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:mymemberlink/myconfig.dart';
@@ -24,7 +23,9 @@ class _NewNewsScreenState extends State<NewNewsScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("New Newsletter"),
+        title: const Text("New Newsletter", style: TextStyle(fontWeight: FontWeight.bold),),
+        backgroundColor: Colors.blue.shade800,
+        foregroundColor: Colors.white,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(8.0),
@@ -93,14 +94,15 @@ class _NewNewsScreenState extends State<NewNewsScreen> {
               borderRadius: BorderRadius.all(Radius.circular(20.0))),
           title: const Text(
             "Insert this newsletter?",
-            style: TextStyle(),
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
           ),
-          content: const Text("Are you sure?", style: TextStyle()),
+          backgroundColor: Colors.blue,
+          content: const Text("Are you sure?", style: TextStyle(color: Colors.white70)),
           actions: <Widget>[
             TextButton(
               child: const Text(
                 "Yes",
-                style: TextStyle(),
+                style: TextStyle(color: Colors.white),
               ),
               onPressed: () {
                 insertNews();
@@ -110,7 +112,7 @@ class _NewNewsScreenState extends State<NewNewsScreen> {
             TextButton(
               child: const Text(
                 "No",
-                style: TextStyle(),
+                style: TextStyle(color: Colors.white),
               ),
               onPressed: () {
                 Navigator.of(context).pop();

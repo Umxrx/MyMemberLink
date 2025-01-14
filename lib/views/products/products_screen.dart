@@ -53,6 +53,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
         actions: [
           IconButton(
           onPressed: () async {
+            // ignore: unused_local_variable
             final what = await Navigator.push(
               context,
               MaterialPageRoute(builder: (content) =>
@@ -62,7 +63,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
               )
             );
             setState(() {
-              cartCount == 0 ? loadCartCount() : cartCount = 0;
+              cartCount == 0 ? loadCartCount() : loadCartCount();
             });
           },
           icon: cartCount == 0
@@ -86,7 +87,17 @@ class _ProductsScreenState extends State<ProductsScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const CircularProgressIndicator(),
+                  status.contains('LOADING...')
+                  ? const CircularProgressIndicator()
+                  : Column(
+                    children: [
+                      SizedBox(
+                        height: screenHeight / 5,
+                        child: Image.asset('assets/icon/error_notfound.png'),
+                      ),
+                      const SizedBox(height: 10,),
+                    ],
+                  ),
                   const SizedBox(height: 10,),
                   Text(
                     status,
@@ -124,12 +135,13 @@ class _ProductsScreenState extends State<ProductsScreen> {
                             ),
                             child: InkWell(
                               //splashColor: Colors.red,
-                              onLongPress: () {
-                                deleteDialog(index);
-                              },
+                              // onLongPress: () {
+                              //   deleteDialog(index);
+                              // },
                               onTap: () async {
                                 Product prod = productsList[index];
-                                final what = Navigator.push(context,
+                                // ignore: unused_local_variable
+                                final what = await Navigator.push(context,
                                   PageRouteBuilder(
                                     pageBuilder: (context, animation, secondaryAnimation) =>
                                         ProductDetailsScreen(
@@ -154,7 +166,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
                                   ),
                                 ).then((value) { setState(() {});});
                                 setState(() {
-                                  cartCount == 0 ? loadCartCount() : cartCount = 0;
+                                  cartCount == 0 ? loadCartCount() : loadCartCount();
                                 });
                               },
                               child: Padding(
@@ -280,6 +292,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
       ),
       floatingActionButton: FloatingActionButton(
             onPressed: () async {
+              // ignore: unused_local_variable
               final what = await Navigator.push(
                 context,
                 MaterialPageRoute(builder: (content) =>
@@ -289,7 +302,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
                 )
               );
               setState(() {
-                cartCount == 0 ? loadCartCount() : cartCount = 0;
+                cartCount == 0 ? loadCartCount() : loadCartCount();
               });
             },
             backgroundColor: Colors.blue,
@@ -328,11 +341,9 @@ class _ProductsScreenState extends State<ProductsScreen> {
     http
         .get(Uri.parse("${MyConfig.servername}/memberlink/api/load_products.php?pageno=$curpage"))
         .then((response) {
-      log(response.body.toString());
       if (response.statusCode == 200) {
         var data = jsonDecode(response.body);
         if (data['status'] == "success") {
-          log('$data');
           var result = data['data']['products'];
           productsList.clear();
           for (var item in result) {
@@ -364,12 +375,10 @@ class _ProductsScreenState extends State<ProductsScreen> {
         .post(Uri.parse("${MyConfig.servername}/memberlink/api/count_cart.php"),
         body: {'userid': widget.user.userId.toString()})
         .then((response) {
-      log(response.body.toString());
       if (response.statusCode == 200) {
         var data = jsonDecode(response.body);
         if (data['status'] == "success") {
           var result = data['data'];
-          log(result.toString());
           if (result != null) {
             setState(() {
               cartCount = int.parse(result.toString());
@@ -380,34 +389,34 @@ class _ProductsScreenState extends State<ProductsScreen> {
     });
   }
 
-  void deleteDialog(int index) {
-    showDialog(
-        context: context,
-        builder: (context) {
-          return AlertDialog(
-              title: Text(
-                "Delete \"${truncateString(productsList[index].productName.toString(), 20)}\"",
-                style: const TextStyle(fontSize: 18),
-              ),
-              content:
-                  const Text("Are you sure you want to delete this product?"),
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                  child: const Text("No"),
-                ),
-                TextButton(
-                  onPressed: () {
-                    deleteProduct(index);
-                    Navigator.pop(context);
-                  },
-                  child: const Text("Yes"),
-                )
-              ]);
-        });
-  }
+  // void deleteDialog(int index) {
+  //   showDialog(
+  //       context: context,
+  //       builder: (context) {
+  //         return AlertDialog(
+  //             title: Text(
+  //               "Delete \"${truncateString(productsList[index].productName.toString(), 20)}\"",
+  //               style: const TextStyle(fontSize: 18),
+  //             ),
+  //             content:
+  //                 const Text("Are you sure you want to delete this product?"),
+  //             actions: [
+  //               TextButton(
+  //                 onPressed: () {
+  //                   Navigator.pop(context);
+  //                 },
+  //                 child: const Text("No"),
+  //               ),
+  //               TextButton(
+  //                 onPressed: () {
+  //                   deleteProduct(index);
+  //                   Navigator.pop(context);
+  //                 },
+  //                 child: const Text("Yes"),
+  //               )
+  //             ]);
+  //       });
+  // }
 
   void deleteProduct(int index) {
     http.post(

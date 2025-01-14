@@ -112,10 +112,15 @@ class _LoginScreenState extends State<LoginScreen> {
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
                       GestureDetector(
-                        onTap: () {
-                          Navigator.push(context,
+                        onTap: () async {
+                          // ignore: unused_local_variable
+                          final what = await Navigator.push(context,
                             MaterialPageRoute(builder: (context) => const RegisterScreen())
-                          );
+                          ).then((value) {
+                            setState(() {
+                              loadPref();
+                            });
+                          },);
                         },
                         child: const Text(style: TextStyle(color: Colors.blue), 'Don\'t have an account? Register'),
                       ),
@@ -235,10 +240,16 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<void> loadPref() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    emailcontroller.text = prefs.getString("email") ?? "";
+    String savedEmail = prefs.getString("email") ?? "";
+    bool savedRememberMe = prefs.getBool("rememberme") ?? false;
+    emailcontroller.text = savedEmail;
     passwordcontroller.text = prefs.getString("password") ?? "";
-    rememberme = prefs.getBool("rememberme") ?? false;
-    setState(() {});
+    rememberme = savedRememberMe;
+    savedRememberMe != true
+    ? setState(() {})
+    : setState(() {
+      _checkEmail(savedEmail);
+    });
   }
 
   _checkEmail(String emailCheck) {
@@ -252,9 +263,11 @@ class _LoginScreenState extends State<LoginScreen> {
         if (data['status'] == 'success') {
           log('$emailCheck exist');
           //return 'This email has been registered';
-          setState(() {
-            _isEmailExist = true;
-          });
+          if (mounted) {
+            setState(() {
+              _isEmailExist = true;
+            });
+          }
         }
         else {
           log('$emailCheck not exist');

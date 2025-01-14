@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
@@ -48,13 +47,23 @@ class _CartScreenState extends State<CartScreen> {
         foregroundColor: Colors.white,
       ),
       body: productList.isEmpty
-          ? const Center(
+          ? Center(
               child: Center(child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  CircularProgressIndicator(),
-                  SizedBox(height: 10,),
-                  Text(style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, letterSpacing: 2, color: Color.fromARGB(255, 65, 65, 65)), "LOADING..."),
+                  status.contains('LOADING...')
+                  ? const CircularProgressIndicator()
+                  : Column(
+                    children: [
+                      SizedBox(
+                        height: screenHeight / 5,
+                        child: Image.asset('assets/icon/error_notfound.png'),
+                      ),
+                      const SizedBox(height: 10,),
+                    ],
+                  ),
+                  const SizedBox(height: 10,),
+                  const Text(style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, letterSpacing: 2, color: Color.fromARGB(255, 65, 65, 65)), "LOADING..."),
                 ],
               )),
             )
@@ -171,11 +180,7 @@ class _CartScreenState extends State<CartScreen> {
                                               .toString())) {
                                         incrementCart(int.parse(cartList[index].productId.toString()));
                                       } else {
-                                        ScaffoldMessenger.of(context)
-                                            .showSnackBar(const SnackBar(
-                                          content: Text("Product out of stock"),
-                                          backgroundColor: Colors.red,
-                                        ));
+                                        outOfStockDialog(index);
                                       }
                                     },
                                   ),
@@ -247,7 +252,7 @@ class _CartScreenState extends State<CartScreen> {
           setState(() {
             cartList.clear();
             productList.clear();
-            status = "NO DATA";
+            status = "NO AVAILABLE DATA";
           });
         }
       } else {
@@ -255,6 +260,33 @@ class _CartScreenState extends State<CartScreen> {
         log("Error");
         setState(() {});
       }
+    });
+  }
+
+  void outOfStockDialog(int index) {
+    showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: Text(
+              "\"${productList[index].productName.toString()}\"",
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+            ),
+            backgroundColor: getColor(index),
+            content: const Text("This product has insufficient stock.", style: TextStyle(color: Colors.white70),),
+            actions: [
+              TextButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  child: const Text("Okay", style: TextStyle(color: Colors.white),))
+            ],
+          );
+        });
+    setState(() {
+      loadCartData().then((onValue) {setState(() {});});
     });
   }
 
@@ -274,7 +306,7 @@ class _CartScreenState extends State<CartScreen> {
             actions: [
               TextButton(
                   onPressed: () {
-                    deleteProduct(index);
+                    removeProduct(index);
                     Navigator.pop(context);
                   },
                   child: const Text("Remove", style: TextStyle(color: Colors.red),)),
@@ -291,7 +323,7 @@ class _CartScreenState extends State<CartScreen> {
     });
   }
 
-  void deleteProduct(int index) {
+  void removeProduct(int index) {
     http.post(
         Uri.parse("${MyConfig.servername}/memberlink/api/remove_product.php"),
         body: {"cartid": cartList[index].cartId.toString()}).then((response) {
@@ -357,15 +389,10 @@ class _CartScreenState extends State<CartScreen> {
       Uri.parse("${MyConfig.servername}/memberlink/api/decrement_cart.php"),
       body: {"userid": widget.user.userId.toString(), "productid": '$productId'})
       .then((response) {
-        log('${response.body}');
+        log(response.body);
         if (response.statusCode == 200) {
           var data = jsonDecode(response.body);
           if (data['status'] == 'success') {
-            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-              content: const Text(style: TextStyle(color: Colors.white), 'Item removed successfully'),
-              backgroundColor: Colors.green[700],
-              duration: const Duration(seconds: 1),
-            ));
           }
           else {
             log(response.body);
@@ -390,11 +417,6 @@ class _CartScreenState extends State<CartScreen> {
         if (response.statusCode == 200) {
           var data = jsonDecode(response.body);
           if (data['status'] == 'success') {
-            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-              content: const Text(style: TextStyle(color: Colors.white), 'Item added successfully'),
-              backgroundColor: Colors.green[700],
-              duration: const Duration(seconds: 1),
-            ));
           }
           else {
             log(response.body);

@@ -34,6 +34,8 @@ class _EditNewsState extends State<EditNewsScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text("Edit Newsletter"),
+        backgroundColor: Colors.blue.shade800,
+        foregroundColor: Colors.white,
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -86,20 +88,21 @@ class _EditNewsState extends State<EditNewsScreen> {
         context: context,
         builder: (context) {
           return AlertDialog(
-            title: const Text("Update News?"),
-            content: const Text("Are you sure you want to update this news?"),
+            backgroundColor: Colors.blue,
+            title: const Text("Update News?", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),),
+            content: const Text("Are you sure you want to update this news?", style: TextStyle(color: Colors.white70),),
             actions: [
               TextButton(
                   onPressed: () {
                     updateNews();
                     Navigator.pop(context);
                   },
-                  child: const Text("Yes")),
+                  child: const Text("Yes", style: TextStyle(color: Colors.white),)),
               TextButton(
                   onPressed: () {
                     Navigator.pop(context);
                   },
-                  child: const Text("No"))
+                  child: const Text("No", style: TextStyle(color: Colors.white),))
             ],
           );
         });

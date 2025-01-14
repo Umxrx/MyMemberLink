@@ -27,6 +27,7 @@ class _MainScreenState extends State<MainScreen> {
   int numofpage = 1;
   int curpage = 1;
   int numofresult = 0;
+  String status = 'LOADING...';
   late double screenWidth, screenHeight;
   var color;
 
@@ -72,13 +73,23 @@ class _MainScreenState extends State<MainScreen> {
             ],
           ),
           body: newsList.isEmpty
-              ? const Center(
+              ? Center(
                   child: Center(child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      CircularProgressIndicator(),
-                      SizedBox(height: 10,),
-                      Text(style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, letterSpacing: 2, color: Color.fromARGB(255, 65, 65, 65)), "LOADING..."),
+                      status.contains('LOADING...')
+                      ? const CircularProgressIndicator()
+                      : Column(
+                        children: [
+                          SizedBox(
+                            height: screenHeight / 5,
+                            child: Image.asset('assets/icon/error_notfound.png'),
+                          ),
+                          const SizedBox(height: 10,),
+                        ],
+                      ),
+                      const SizedBox(height: 10,),
+                      Text(status, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, letterSpacing: 2, color: Color.fromARGB(255, 65, 65, 65)),),
                     ],
                   )),
                 )
@@ -232,10 +243,20 @@ class _MainScreenState extends State<MainScreen> {
           numofresult = int.parse(data['numberofresult'].toString());
           log('Number of page   : $numofpage');
           log('Number of result : $numofresult');
-          setState(() {});
+          setState(() {
+            status = 'LOADING...';
+          });
+        }
+        else {
+          setState(() {
+            status = 'NO AVAILABLE DATA';
+          });
         }
       } else {
         log('Error loading data');
+        setState(() {
+          status = 'ERROR';
+        });
       }
     });
     if (_listScrollController.hasClients) {
@@ -319,12 +340,14 @@ class _MainScreenState extends State<MainScreen> {
         if (data['status'] == "success") {
           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
             content: Text("The news has been deleted successfully"),
+            duration: Duration(seconds: 1),
             backgroundColor: Colors.green,
           ));
           loadNewsData(); //reload data
         } else {
           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
             content: Text("Something went wrong..."),
+            duration: Duration(seconds: 1),
             backgroundColor: Colors.red,
           ));
         }

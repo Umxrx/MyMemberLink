@@ -116,9 +116,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         return null;
                       }
                     },
-                    onChanged: (value) {
-                      _checkEmail(value);
-                    },
+                    // onChanged: (value) {
+                    //   _checkEmail(value);
+                    // },
                   ),
                   const SizedBox(height: 20,),
                   TextFormField(
@@ -140,11 +140,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       }
                       return null;
                     },
-                    onChanged: (value) {
-                      setState(() {
-                        password = value;
-                      });
-                    },
+                    // onChanged: (value) {
+                    //   setState(() {
+                    //     password = value;
+                    //   });
+                    // },
                   ),
                   const SizedBox(height: 20,),
                   TextFormField(
@@ -158,6 +158,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       ),
                     ),
                     validator: (value) {
+                      String userPassword  = passwordcontroller.text;
+                      setState(() {
+                        password = userPassword;
+                      });
                       if (value == null || value.isEmpty) {
                         return 'Please confirm your password';
                       }
@@ -203,6 +207,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     if (_formKey.currentState!.validate()) {
       String username  = namecontroller.text;
       String email     = emailcontroller.text;
+      _checkEmail(email);
       String userphone = phonecontroller.text;
       String userPassword  = passwordcontroller.text;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -271,17 +276,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
     }
   }
 
-  bool isRedundentClick(DateTime currentTime) {
-    log('diff is ${currentTime.difference(loginClickTime).inSeconds}');
-    if (currentTime.difference(loginClickTime).inSeconds < 5) {
-      // set this difference time in seconds
-      return true;
-    }
-
-    loginClickTime = currentTime;
-    return false;
-  }
-
   _checkEmail(String emailCheck) {
     http.post(
       Uri.parse("${MyConfig.servername}/memberlink/api/email_exist.php"),
@@ -290,14 +284,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
       if (response.statusCode == 200) {
         var data = jsonDecode(response.body);
         if (data['status'] == 'success') {
-          print('existed');
+          log('existed');
           //return 'This email has been registered before';
           setState(() {
             _emailTaken = false;
           });
         }
         else {
-          print('not exist');
+          log('not exist');
           //return null;
           setState(() {
             _emailTaken = true;
@@ -305,7 +299,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         }
       }
       else {
-        print('uri problem');
+        log('uri problem');
         //return 'Something went wrong';
         setState(() {
           _emailTaken = false;

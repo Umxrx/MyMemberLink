@@ -55,7 +55,17 @@ class _EventScreenState extends State<EventScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const CircularProgressIndicator(),
+                  status.contains('LOADING...')
+                  ? const CircularProgressIndicator()
+                  : Column(
+                    children: [
+                      SizedBox(
+                        height: screenHeight / 5,
+                        child: Image.asset('assets/icon/error_notfound.png'),
+                      ),
+                      const SizedBox(height: 10,),
+                    ],
+                  ),
                   const SizedBox(height: 10,),
                   Text(
                     status,
@@ -167,7 +177,10 @@ class _EventScreenState extends State<EventScreen> {
           }
           setState(() {});
         } else {
-          status = "NO DATA";
+          log('No data');
+          setState(() {
+            status = "NO AVAILABLE DATA";
+          });
         }
       } else {
         status = "ERROR";
