@@ -1,14 +1,13 @@
 import 'dart:convert';
 import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
-
 import 'package:mymemberlink/model/membership.dart';
 import 'package:mymemberlink/model/user.dart';
 import 'package:mymemberlink/myconfig.dart';
 import 'package:mymemberlink/views/membership/membership_details.dart';
+import 'package:mymemberlink/views/payment/payment_history_screen.dart';
 
 class MembershipScreen extends StatefulWidget {
   final User user;
@@ -21,8 +20,9 @@ class MembershipScreen extends StatefulWidget {
 class _MembershipScreenState extends State<MembershipScreen> {
   List<Membership> membershipList = [];
   final df = DateFormat('[dd/MM/yyyy] hh:mm a');
-
+  bool isLoading = false;
   late PageController _pageController;
+  List<Map<String, dynamic>> purchaseHistory = [];
   // Adjust this fraction to control how much neighboring cards are visible.
   final double _viewportFraction = 0.6;
 
@@ -65,14 +65,22 @@ class _MembershipScreenState extends State<MembershipScreen> {
 
     return Scaffold(
       appBar: AppBar(
+        foregroundColor: Colors.white,
         title: const Text(
           "Membership Plan",
           style: TextStyle(
-            color: Colors.white, 
             fontWeight: FontWeight.bold,
           ),
         ),
         backgroundColor: Colors.blue[800],
+        actions: [
+          IconButton(
+            onPressed: () {
+              Navigator.push(context, MaterialPageRoute(builder: (context) => PaymentHistoryScreen(user: widget.user)));
+            },
+            icon: const Icon(Icons.history),
+          ),
+        ],
         elevation: 10.0,
       ),
       body: membershipList.isEmpty
