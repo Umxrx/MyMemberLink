@@ -128,7 +128,7 @@ class _MembershipDetailsState extends State<MembershipDetails> {
       // Create pending purchase first
       final response = await http.post(
         Uri.parse(
-            "${MyConfig.servername}/mymemberlink/api/insert_pending_payment.php"),
+            "${MyConfig.servername}/memberlink/api/insert_pending_payment.php"),
         body: {
           'user_id': widget.user.userId.toString(),
           'membership_id': membership.membershipId.toString(),
@@ -155,13 +155,12 @@ class _MembershipDetailsState extends State<MembershipDetails> {
                 receiptId: receiptId,
               ),
             ),
-          ).then((value) {
-            Navigator.pop(context);
-            Navigator.pop(context);
-          });
+          );
 
           // Refresh the purchase history after returning
-          _loadPurchaseHistory();
+          _loadPurchaseHistory().then((value) {
+            Navigator.pop(context);
+          });
         } else {
           throw Exception(jsonResponse['message']);
         }
@@ -180,7 +179,7 @@ class _MembershipDetailsState extends State<MembershipDetails> {
     try {
       final response = await http.get(
         Uri.parse(
-          "${MyConfig.servername}/mymemberlink/api/load_purchase_history.php?userid=${widget.user.userId}",
+          "${MyConfig.servername}/memberlink/api/load_purchase_history.php?userid=${widget.user.userId}",
         ),
       );
 
@@ -194,10 +193,14 @@ class _MembershipDetailsState extends State<MembershipDetails> {
         }
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error loading history: $e')),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error loading history: $e')),
+        );
+      }
     }
-    setState(() => isLoading = false);
+    if (mounted) {
+      setState(() => isLoading = false);
+    }
   }
 }

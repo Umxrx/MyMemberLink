@@ -20,6 +20,8 @@ class MembershipScreen extends StatefulWidget {
 class _MembershipScreenState extends State<MembershipScreen> {
   List<Membership> membershipList = [];
   final df = DateFormat('[dd/MM/yyyy] hh:mm a');
+  bool userHasMembership = false;
+  String userMembershipName = '';
   bool isLoading = false;
   late PageController _pageController;
   List<Map<String, dynamic>> purchaseHistory = [];
@@ -46,6 +48,7 @@ class _MembershipScreenState extends State<MembershipScreen> {
   void initState() {
     super.initState();
     loadMembershipData();
+    loadUserMembership();
     _pageController = PageController(
       viewportFraction: _viewportFraction,
       initialPage: 0,
@@ -76,9 +79,12 @@ class _MembershipScreenState extends State<MembershipScreen> {
         actions: [
           IconButton(
             onPressed: () {
-              Navigator.push(context, MaterialPageRoute(builder: (context) => PaymentHistoryScreen(user: widget.user)));
+              Navigator.push(context, MaterialPageRoute(builder: (context) => PaymentHistoryScreen(user: widget.user))).then((onValue) {
+                loadMembershipData();
+                loadUserMembership();
+              });
             },
-            icon: const Icon(Icons.history),
+            icon: const Icon(Icons.receipt_long_outlined),
           ),
         ],
         elevation: 10.0,
@@ -211,18 +217,28 @@ class _MembershipScreenState extends State<MembershipScreen> {
     final membership = membershipList[index];
     String descriptions = membership.membershipDescription ?? "";
     List<String> descriptionList = descriptions.split(', ');
+    int cardColor = hasColor(userMembershipName);
+    log('Card Color: $cardColor');
+    log('Index: ${index + 1}');
     return Card(
-      color: getColor(index),
+      color: cardColor >= index + 1
+        ? Colors.grey
+        : getColor(index),
       elevation: 10,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
       ),
       child: InkWell(
         onTap: () {
-          Navigator.push(
+          cardColor >= index + 1
+          ? membershipExistedDialog()
+          : Navigator.push(
             context,
             MaterialPageRoute(builder: (context) => MembershipDetails(user: widget.user, membership: membership)),
-          );
+          ).then((onValue) {
+            loadMembershipData();
+            loadUserMembership();
+          });
         },
         borderRadius: BorderRadius.circular(16),
         child: Padding(
@@ -303,26 +319,34 @@ class _MembershipScreenState extends State<MembershipScreen> {
           for (var item in result) {
             membershipList.add(Membership.fromJson(item));
           }
-          setState(() {
-            status = 'Data Loaded';
-          });
+          if (mounted) {
+            setState(() {
+              status = 'Data Loaded';
+            });
+          }
         } else {
           log('No available data');
-          setState(() {
-            status = 'NO AVAILABLE DATA';
-          });
+          if (mounted) {
+            setState(() {
+              status = 'NO AVAILABLE DATA';
+            });
+          }
         }
       } else {
         log('Error loading data');
+        if (mounted) {
+          setState(() {
+            status = 'ERROR';
+          });
+        }
+      }
+    } catch (e) {
+      log('Exception: $e');
+      if (mounted) {
         setState(() {
           status = 'ERROR';
         });
       }
-    } catch (e) {
-      log('Exception: $e');
-      setState(() {
-        status = 'ERROR';
-      });
     }
   }
 
@@ -355,5 +379,103 @@ class _MembershipScreenState extends State<MembershipScreen> {
   String getPrice(double price) {
     String newPrice = 'RM${price.toStringAsFixed(2)}';
     return newPrice;
+  }
+
+  Future<(bool, String)> hasMembership() async {
+    try {
+      // Get membership detail
+      final response = await http.get(
+        Uri.parse(
+          "${MyConfig.servername}/memberlink/api/get_membership.php?userid=${widget.user.userId}",
+        ),
+      );
+
+      if (response.statusCode == 200) {
+        final jsonResponse = jsonDecode(response.body);
+        if (jsonResponse['status'] == 'success') {
+          String membership = jsonResponse['membership_name'];
+          if (membership == 'No active membership') {
+            return Future.value((false, ''));
+          }
+          else {
+            return Future.value((true, membership));
+          }
+        }
+        else {
+          return Future.value((false, ''));
+        }
+      }
+      else {
+        return Future.value((false, ''));
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error fetching membership: $e')),
+        );
+      }
+      return Future.value((false, ''));
+    }
+  }
+
+  void loadUserMembership() async {
+    final (boole, namee) = await hasMembership();
+
+    if (mounted) {
+      setState(() {
+        userHasMembership = boole;
+        userMembershipName = namee;
+      });
+    }
+  }
+
+  int hasColor(String memberName) {
+    if (memberName == 'Economic') {
+      return 1;
+    }
+    else if (memberName == 'Basic') {
+      return 2;
+    }
+    else if (memberName == 'Pro') {
+      return 3;
+    }
+    else if (memberName == 'Business') {
+      return 4;
+    }
+    else {
+      return 0;
+    }
+  }
+
+  void membershipExistedDialog() {
+    showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: const Text('Already a Member', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),),
+            backgroundColor: Colors.blue,
+            content: Text(truncateString('Your membership is currently active. You can renew your membership after it expires.', 300),
+                textAlign: TextAlign.justify,
+                style: const TextStyle(color: Colors.white70),
+                ),
+            actions: [
+              TextButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  child: const Text("Okay", style: TextStyle(color: Colors.white))
+              )
+            ],
+          );
+        });
+  }
+
+  String truncateString(String str, int length) {
+    if (str.length > length) {
+      str = str.substring(0, length);
+      return "$str...";
+    } else {
+      return str;
+    }
   }
 }
