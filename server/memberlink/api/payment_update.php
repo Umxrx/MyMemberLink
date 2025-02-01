@@ -33,7 +33,7 @@ foreach ($data as $key => $value) {
     }
 }
  
-$signed= hash_hmac('sha256', $signing, '94d737a89cc4562daf98f4dc81f2b5b6c334ac073a2cfc966a73938e1ed8e7f7faf05791900e95b1dc865dcb5105eda1f8ccca89245670d6ad2028a321e4efd2');
+$signed= hash_hmac('sha256', $signing, 'your_x_signature');
 if ($signed === $data['x_signature']) {
     if ($paidstatus == "Success") {
         // Insert purchase record
