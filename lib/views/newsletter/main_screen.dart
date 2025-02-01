@@ -10,7 +10,6 @@ import 'package:mymemberlink/myconfig.dart';
 import 'package:mymemberlink/shared/mydrawer.dart';
 import 'package:mymemberlink/views/newsletter/edit_news.dart';
 import 'package:mymemberlink/views/newsletter/new_news.dart';
-//import 'package:mymemberlink/views/newsletter/new_news.dart';
 
 class MainScreen extends StatefulWidget {
   final User user;
