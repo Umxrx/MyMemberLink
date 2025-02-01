@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
+import 'dart:developer';
 import 'package:intl/intl.dart';
 import 'package:mymemberlink/model/user.dart';
 import 'package:mymemberlink/myconfig.dart';
@@ -19,6 +19,8 @@ class PaymentHistoryScreen extends StatefulWidget {
 class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
   List<Map<String, dynamic>> purchaseHistory = [];
   bool isLoading = true;
+  String status = 'LOADING...';
+  late double screenWidth, screenHeight;
 
   @override
   void initState() {
@@ -27,10 +29,15 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
   }
 
   Future<void> loadPurchaseHistory() async {
+    setState(() {
+      isLoading = true;
+      status = 'LOADING...';
+    });
+    Future.delayed(const Duration(seconds: 2));
     try {
       final response = await http.get(
         Uri.parse(
-          "${MyConfig.servername}/mymemberlink/api/load_purchase_history.php?userid=${widget.user.userId}",
+          "${MyConfig.servername}/memberlink/api/load_purchase_history.php?userid=${widget.user.userId}",
         ),
       );
 
@@ -40,20 +47,34 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
           setState(() {
             purchaseHistory = List<Map<String, dynamic>>.from(jsonData['data']);
             isLoading = false;
+            status = 'LOADING...';
           });
         } else {
           setState(() {
             purchaseHistory = [];
             isLoading = false;
+            status = 'NO AVAILABLE DATA';
           });
         }
+      } else {
+        setState(() {
+          purchaseHistory = [];
+          isLoading = true;
+          status = 'ERROR';
+        });
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error loading history: $e')),
+          SnackBar(
+            content: Text('Error loading history: $e'),
+            backgroundColor: Colors.red,
+          ),
         );
-        setState(() => isLoading = false);
+        setState(() {
+          isLoading = true;
+          status = 'ERROR';
+        });
       }
     }
   }
@@ -65,23 +86,23 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
 
     switch (status.toLowerCase()) {
       case 'success':
-        backgroundColor = Colors.green.shade100;
-        textColor = Colors.green.shade800;
+        backgroundColor = Colors.white;
+        textColor = Colors.green;
         icon = Icons.check_circle;
         break;
       case 'pending':
-        backgroundColor = Colors.orange.shade100;
-        textColor = Colors.orange.shade800;
+        backgroundColor = Colors.white;
+        textColor = Colors.orange;
         icon = Icons.pending;
         break;
       case 'failed':
-        backgroundColor = Colors.red.shade100;
-        textColor = Colors.red.shade800;
+        backgroundColor = Colors.white;
+        textColor = Colors.red;
         icon = Icons.error;
         break;
       default:
-        backgroundColor = Colors.grey.shade100;
-        textColor = Colors.grey.shade800;
+        backgroundColor = Colors.white;
+        textColor = Colors.grey.shade900;
         icon = Icons.help;
     }
 
@@ -110,12 +131,14 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
 
   Widget _buildPurchaseCard(Map<String, dynamic> purchase) {
     return Card(
+      color: Colors.blue,
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: ListTile(
         contentPadding: const EdgeInsets.all(16),
         title: Text(
           purchase['membership_name'] ?? 'Unknown Membership',
           style: const TextStyle(
+            color: Colors.white,
             fontWeight: FontWeight.bold,
             fontSize: 16,
           ),
@@ -126,12 +149,11 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
             const SizedBox(height: 8),
             Row(
               children: [
-                const Icon(Icons.calendar_today, size: 16),
+                const Icon(Icons.calendar_today, size: 16, color: Colors.white,),
                 const SizedBox(width: 8),
                 Text(
-                  DateFormat('dd MMM yyyy').format(
-                    DateTime.parse(purchase['purchase_date']),
-                  ),
+                  DateFormat('dd MMM yyyy').format(DateTime.parse(purchase['purchase_date']),),
+                  style: const TextStyle(color: Colors.white),
                 ),
               ],
             ),
@@ -154,10 +176,10 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'RM ${purchase['amount']}',
+                  getPrice(purchase['amount'].toDouble()),
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
-                    color: Colors.teal,
+                    color: Colors.orange,
                     fontSize: 16,
                   ),
                 ),
@@ -169,12 +191,12 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
                 padding: const EdgeInsets.only(top: 8),
                 child: ElevatedButton(
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF463F3A),
+                    backgroundColor: Colors.black,
                   ),
-                  onPressed: () => _continuePurchase(purchase),
+                  onPressed: () => _continuePurchase(purchase, purchase['membership_name']),
                   child: const Text(
-                    'Continue Purchase',
-                    style: TextStyle(color: Colors.white),
+                    'Make Purchase',
+                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
                   ),
                 ),
               ),
@@ -185,59 +207,154 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
     );
   }
 
-  void _continuePurchase(Map<String, dynamic> purchase) async {
-    try {
-      // Get membership details
-      final response = await http.get(
-        Uri.parse(
-          "${MyConfig.servername}/mymemberlink/api/get_membership.php?membership_id=${purchase['membership_id']}",
-        ),
-      );
-
-      if (response.statusCode == 200) {
-        final jsonResponse = jsonDecode(response.body);
-        if (jsonResponse['status'] == 'success') {
-          final membership = Membership.fromJson(jsonResponse['data']);
-
-          if (mounted) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (content) => BillScreen(
-                  user: widget.user,
-                  totalprice: double.parse(purchase['amount'].toString()),
-                  membership: membership,
-                  purchaseId: purchase['purchase_id'],
-                  receiptId: purchase['receipt_id'],
-                ),
-              ),
-            ).then((_) => loadPurchaseHistory());
-          }
+  void _continuePurchase(Map<String, dynamic> purchase, String membershipName) async {
+    final (userHasMembership, userMembershipName) = await hasMembership();
+    int memberRank = membershipIds(userMembershipName);
+    int chosenRank = membershipIds(membershipName);
+    if (!userHasMembership || (userHasMembership && chosenRank > memberRank)) {
+      try {
+        List<Membership> memberlist = [];
+        await http
+            .get(Uri.parse("${MyConfig.servername}/memberlink/api/one_membership.php?membership_name=$membershipName"))
+            .then((value) {
+              if (value.statusCode == 200) {
+                final data = jsonDecode(value.body);
+                log('Response Data: $data');
+                if (data['status'] == "success") {
+                  final result = data['data']['membership'];
+                  log('Result: $result');
+                  for (var item in result) {
+                    log('Trying to loop...');
+                    memberlist.add(Membership.fromJson(item));
+                  }
+                  if (mounted) {
+                    log('Purchase Content: $purchase');
+                    Membership pushedMembership = memberlist.first;
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (content) => BillScreen(
+                          user: widget.user,
+                          totalprice: double.parse(purchase['amount']?.toString() ?? '0.0'),
+                          membership: pushedMembership,
+                          purchaseId: purchase['purchase_id'].toString(),
+                          receiptId: purchase['receipt_id'],
+                        ),
+                      ),
+                    ).then((_) {
+                      Navigator.pop(context);
+                      loadPurchaseHistory();
+                      Navigator.pop(context);
+                    });
+                  }
+                } else {
+                  log('No available data');
+                }
+              } else {
+                log('Error loading data');
+              }
+            });
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Error continuing purchase: $e')),
+          );
+          log('Error Message: $e');
         }
       }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error continuing purchase: $e')),
-        );
-      }
+    }
+    else {
+      //Pop up window says membership already exists
+      membershipExistedDialog();
+    }
+  }
+
+  int membershipIds(String memberName) {
+    if (memberName == 'Economic') {
+      return 1;
+    }
+    else if (memberName == 'Basic') {
+      return 2;
+    }
+    else if (memberName == 'Pro') {
+      return 3;
+    }
+    else if (memberName == 'Business') {
+      return 4;
+    }
+    else {
+      return 0;
+    }
+  }
+
+  void membershipExistedDialog() {
+    showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: const Text('Already a Member', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),),
+            backgroundColor: Colors.blue,
+            content: Text(truncateString('Your membership is currently active. You can renew your membership after it expires.', 300),
+                textAlign: TextAlign.justify,
+                style: const TextStyle(color: Colors.white70),
+                ),
+            actions: [
+              TextButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  child: const Text("Okay", style: TextStyle(color: Colors.white))
+              )
+            ],
+          );
+        });
+  }
+
+  String truncateString(String str, int length) {
+    if (str.length > length) {
+      str = str.substring(0, length);
+      return "$str...";
+    } else {
+      return str;
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    screenHeight = MediaQuery.of(context).size.height;
+    screenWidth = MediaQuery.of(context).size.width;
     return Scaffold(
       appBar: AppBar(
-        title: Text(
+        backgroundColor: Colors.blue[800],
+        foregroundColor: Colors.white,
+        title: const Text(
           "Payment History",
-          style: GoogleFonts.monoton(color: const Color(0xFFF4F3EE)),
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+          ),
         ),
-        centerTitle: true,
-        backgroundColor: const Color(0xFF463F3A),
-        iconTheme: const IconThemeData(color: Color(0xFFF4F3EE)),
       ),
       body: isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? Center(
+              child: Center(child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  status.contains('LOADING...')
+                  ? const CircularProgressIndicator()
+                  : Column(
+                    children: [
+                      SizedBox(
+                        height: screenHeight / 5,
+                        child: Image.asset('assets/icon/error_notfound.png'),
+                      ),
+                      const SizedBox(height: 10,),
+                    ],
+                  ),
+                  const SizedBox(height: 10,),
+                  Text(status, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, letterSpacing: 2, color: Color.fromARGB(255, 65, 65, 65)),),
+                ],
+              )),
+            )
           : RefreshIndicator(
               onRefresh: loadPurchaseHistory,
               child: purchaseHistory.isEmpty
@@ -315,11 +432,11 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
           Image.asset('assets/images/logo.png', height: 60),
           const SizedBox(height: 8),
           const Text(
-            'MyMemberLink',
+            'My Member Link',
             style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
           ),
           const Text(
-            '123 Business Street\nCity, State 12345',
+            'Universiti Utara Malaysia\nChanglun, Sintok, Kedah',
             textAlign: TextAlign.center,
             style: TextStyle(color: Colors.grey),
           ),
@@ -435,5 +552,47 @@ class _PaymentHistoryScreenState extends State<PaymentHistoryScreen> {
         ],
       ),
     );
+  }
+
+  String getPrice(double price) {
+    String newPrice = 'RM${price.toStringAsFixed(2)}';
+    return newPrice;
+  }
+
+  Future<(bool, String)> hasMembership() async {
+    try {
+      // Get membership detail
+      final response = await http.get(
+        Uri.parse(
+          "${MyConfig.servername}/memberlink/api/get_membership.php?userid=${widget.user.userId}",
+        ),
+      );
+
+      if (response.statusCode == 200) {
+        final jsonResponse = jsonDecode(response.body);
+        if (jsonResponse['status'] == 'success') {
+          String membership = jsonResponse['membership_name'];
+          if (membership == 'No active membership') {
+            return Future.value((false, ''));
+          }
+          else {
+            return Future.value((true, membership));
+          }
+        }
+        else {
+          return Future.value((false, ''));
+        }
+      }
+      else {
+        return Future.value((false, ''));
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error fetching membership: $e')),
+        );
+      }
+      return Future.value((false, ''));
+    }
   }
 }

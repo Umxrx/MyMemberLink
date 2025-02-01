@@ -4,7 +4,6 @@ import 'package:webview_flutter_android/webview_flutter_android.dart';
 import 'package:mymemberlink/model/user.dart';
 import 'package:mymemberlink/model/membership.dart';
 import 'package:mymemberlink/myconfig.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 class BillScreen extends StatefulWidget {
   final User user;
@@ -63,7 +62,7 @@ class _BillScreenState extends State<BillScreen> {
         ),
       )
       ..loadRequest(
-        Uri.parse("${MyConfig.servername}/mymemberlink/api/payment.php?"
+        Uri.parse("${MyConfig.servername}/memberlink/api/payment.php?"
             "userid=${widget.user.userId}"
             "&email=${Uri.encodeComponent(widget.user.userEmail ?? '')}"
             "&phone=${Uri.encodeComponent(widget.user.userPhone ?? '')}"
@@ -83,28 +82,19 @@ class _BillScreenState extends State<BillScreen> {
       },
       child: Scaffold(
         appBar: AppBar(
-          title: Text(
+          backgroundColor: Colors.blue.shade800,
+          foregroundColor: Colors.white,
+          title: const Text(
             "Payment",
-            style: GoogleFonts.poppins(
-              fontSize: 20,
-              fontWeight: FontWeight.w600,
-              color: const Color(0xFFF4F3EE),
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
             ),
           ),
-          centerTitle: true,
-          elevation: 2,
-          backgroundColor: const Color(0xFF463F3A),
           leading: IconButton(
             icon: const Icon(
               Icons.arrow_back_ios_new,
-              color: Color(0xFFF4F3EE),
             ),
             onPressed: () => Navigator.of(context).pop(),
-          ),
-          shape: const RoundedRectangleBorder(
-            borderRadius: BorderRadius.vertical(
-              bottom: Radius.circular(15),
-            ),
           ),
         ),
         body: Stack(
