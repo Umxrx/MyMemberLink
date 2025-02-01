@@ -9,9 +9,9 @@ if (!isset($_GET['userid'])) {
     exit;
 }
 
-$userid = $_GET['userid'];
+$userid = intval($_GET['userid']);
 
-$sql = "SELECT p.*, m.membership_name, m.membership_desc, u.user_name, u.user_email, u.user_phoneNum 
+$sql = "SELECT p.*, m.membership_name, m.membership_description, u.user_name, u.user_email, u.user_phone
         FROM membership_purchase_tbl p
         LEFT JOIN membership_tbl m ON p.membership_id = m.membership_id
         LEFT JOIN user_tbl u ON p.user_id = u.user_id
@@ -29,7 +29,7 @@ if ($stmt->execute()) {
         $purchases[] = [
             'purchase_id' => $row['purchase_id'],
             'membership_name' => $row['membership_name'],
-            'membership_desc' => $row['membership_desc'],
+            'membership_desc' => $row['membership_description'],
             'receipt_id' => $row['receipt_id'],
             'amount' => $row['amount'],
             'payment_status' => $row['payment_status'],

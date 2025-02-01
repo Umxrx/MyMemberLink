@@ -11,7 +11,7 @@ $collection_id = 'hjx3a2g9';
 $host = 'https://www.billplz-sandbox.com/api/v3/bills';
 
 // Build redirect URL with membership ID if present
-$redirect_url = "https://feeyazproduction.com/memberlink_umair/memberlink/api/payment_update.php?userid=$userid&email=$email&phone=$phone&amount=$amount&name=$name";
+$redirect_url = "https://urazproduction.site/memberlink/api/payment_update.php?userid=$userid&email=$email&phone=$phone&amount=$amount&name=$name";
 if ($membershipId) {
     $redirect_url .= "&membershipId=$membershipId";
 }
@@ -23,7 +23,7 @@ $data = array(
           'name' => $name,
           'amount' => ($amount) * 100,
           'description' => 'Payment for order by '.$name,
-          'callback_url' => "https://feeyazproduction.com/memberlink_umair/memberlink/return_url",
+          'callback_url' => "https://urazproduction.site/memberlink/return_url",
           'redirect_url' => $redirect_url 
 );
 
@@ -37,8 +37,17 @@ curl_setopt($process, CURLOPT_SSL_VERIFYPEER, 0);
 curl_setopt($process, CURLOPT_POSTFIELDS, http_build_query($data)); 
 
 $return = curl_exec($process);
+
+// Check for any cURL errors
+if ($return === false) {
+    echo 'cURL Error: ' . curl_error($process);
+}
+
 curl_close($process);
 $bill = json_decode($return, true);
+
+// Debug the response
+var_dump($bill); // Print the response to see if the URL is returned
 
 // Check if the 'url' key exists and redirect
 if (isset($bill['url'])) {
