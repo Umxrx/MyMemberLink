@@ -179,7 +179,7 @@ if ($signed === $data['x_signature']) {
                         <table class='w3-table'>
                             <tr>
                                 <td><strong>Total Amount:</strong></td>
-                                <td><strong>RM$amount.00</strong></td>
+                                <td><strong>RM${amount}0</strong></td>
                             </tr>
                             <tr>
                                 <td><strong>Status:</strong></td>
