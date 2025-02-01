@@ -6,8 +6,8 @@ $userid = $_GET['userid'];
 $amount = $_GET['amount'];
 $membershipId = isset($_GET['membershipId']) ? $_GET['membershipId'] : null;
 
-$api_key = '41ede2d9-faf0-44b0-a04e-8b4884578602';
-$collection_id = 'hjx3a2g9';
+$api_key = 'your_api_key';
+$collection_id = 'your_collection_id';
 $host = 'https://www.billplz-sandbox.com/api/v3/bills';
 
 // Build redirect URL with membership ID if present
